@@ -1,0 +1,9 @@
+{
+  "name": "Medicinal AI",
+  "description": "An ultra-dark, premium AI-powered medicine intelligence app using Gemini for scanning, analysis, and real-time consultation.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

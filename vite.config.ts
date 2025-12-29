@@ -4,17 +4,21 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
-  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
+  // We use process.cwd() which is standard in Node.js environments (like Netlify build).
+  // Cast process to any to avoid TypeScript error about cwd() missing on Process interface
   const env = loadEnv(mode, (process as any).cwd(), '');
+
+  // Netlify injects environment variables into process.env during the build.
+  // We check the loaded env first, then fall back to the process environment.
+  const apiKey = env.API_KEY || process.env.API_KEY;
 
   return {
     plugins: [react()],
     define: {
-      // This is necessary to polyfill process.env.API_KEY for the @google/genai SDK.
-      // We use JSON.stringify to ensure it is inserted as a string literal.
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
-      // Polyfill process.env as an empty object to prevent crashes if libraries try to access it.
-      'process.env': JSON.stringify({})
+      // This injects the API key into the client-side code.
+      'process.env.API_KEY': JSON.stringify(apiKey),
+      // This prevents "process is not defined" errors in client-side dependencies.
+      'process.env': {}
     },
     build: {
       outDir: 'dist',

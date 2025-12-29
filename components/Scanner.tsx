@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Camera, Zap, Activity, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Camera, Zap, Activity, AlertTriangle, CheckCircle, Scan, Image as ImageIcon, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { analyzeMedicineImage } from '../services/geminiService';
 import { saveScanResult } from '../services/storageService';
@@ -8,7 +8,8 @@ const Scanner: React.FC = () => {
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -48,6 +49,17 @@ const Scanner: React.FC = () => {
     }
   };
 
+  // Scanning animation effect
+  const [scanLinePos, setScanLinePos] = useState(0);
+  useEffect(() => {
+    if (image && !result && !isAnalyzing) {
+       const interval = setInterval(() => {
+         setScanLinePos(prev => (prev + 1) % 100);
+       }, 20);
+       return () => clearInterval(interval);
+    }
+  }, [image, result, isAnalyzing]);
+
   return (
     <div className="relative w-full h-full rounded-3xl overflow-hidden min-h-[80vh] flex flex-col items-center">
         {/* Background Image - Nature Theme */}
@@ -62,75 +74,106 @@ const Scanner: React.FC = () => {
 
         <div className="relative z-10 w-full max-w-3xl mx-auto p-4 md:p-8 flex flex-col gap-8">
             <div className="text-center space-y-2 pt-8">
-                <h2 className="text-4xl font-bold text-white drop-shadow-md">
-                Medicine Scanner
+                <h2 className="text-4xl font-bold text-white drop-shadow-md flex items-center justify-center gap-3">
+                  <Scan className="text-emerald-400" size={32} />
+                  Medicine Scanner
                 </h2>
                 <p className="text-emerald-100/70 text-sm font-medium">AI-Powered Identification & Intelligence</p>
             </div>
 
             {/* Input Area */}
-            <div className="glass-panel backdrop-blur-xl bg-black/40 rounded-3xl p-8 flex flex-col items-center justify-center min-h-[350px] border-dashed border-2 border-emerald-500/30 relative overflow-hidden group transition-all hover:border-emerald-500/60 shadow-2xl">
+            <div className={`glass-panel backdrop-blur-xl bg-black/40 rounded-3xl p-8 flex flex-col items-center justify-center min-h-[400px] border-dashed border-2 ${image ? 'border-emerald-500/50' : 'border-emerald-500/30'} relative overflow-hidden group transition-all hover:border-emerald-500/60 shadow-2xl`}>
                 {!image ? (
-                <div className="text-center space-y-6 z-10">
-                    <div className="w-24 h-24 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto neon-glow-emerald border border-emerald-500/30">
-                    <Camera className="w-10 h-10 text-emerald-400" />
+                <div className="text-center space-y-8 z-10 w-full max-w-md">
+                    <div className="w-32 h-32 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto neon-glow-emerald border border-emerald-500/30 relative">
+                        <Scan className="w-16 h-16 text-emerald-400 absolute opacity-50 animate-pulse" />
+                        <Camera className="w-10 h-10 text-white z-10" />
                     </div>
-                    <div className="space-y-3">
-                    <button 
-                        onClick={() => fileInputRef.current?.click()}
-                        className="shiny-btn px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold tracking-wide transition-all neon-glow-emerald shadow-lg"
-                    >
-                        Upload Photo
-                    </button>
+                    
+                    <div className="grid grid-cols-2 gap-4 w-full">
+                        <button 
+                            onClick={() => cameraInputRef.current?.click()}
+                            className="shiny-btn flex flex-col items-center justify-center gap-2 p-6 bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/30 rounded-2xl transition-all group/btn"
+                        >
+                            <Camera className="w-8 h-8 text-emerald-400 group-hover/btn:scale-110 transition-transform" />
+                            <span className="font-bold text-white">Camera</span>
+                        </button>
+                        <button 
+                            onClick={() => galleryInputRef.current?.click()}
+                            className="shiny-btn flex flex-col items-center justify-center gap-2 p-6 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 rounded-2xl transition-all group/btn"
+                        >
+                            <ImageIcon className="w-8 h-8 text-blue-400 group-hover/btn:scale-110 transition-transform" />
+                            <span className="font-bold text-white">Upload</span>
+                        </button>
+                    </div>
+
                     <p className="text-xs text-emerald-200/60">Supports bottles, strips, and prescriptions</p>
-                    </div>
+                    
                     <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept="image/*" 
-                    onChange={handleFileUpload}
+                        type="file" 
+                        ref={cameraInputRef} 
+                        className="hidden" 
+                        accept="image/*" 
+                        capture="environment"
+                        onChange={handleFileUpload}
+                    />
+                    <input 
+                        type="file" 
+                        ref={galleryInputRef} 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={handleFileUpload}
                     />
                 </div>
                 ) : (
                 <div className="w-full h-full flex flex-col items-center relative z-10">
-                    <img 
-                    src={`data:image/jpeg;base64,${image}`} 
-                    alt="Scanned Medicine" 
-                    className="max-h-[350px] rounded-xl shadow-2xl border border-white/10 object-contain bg-black/50"
-                    />
-                    <button 
-                    onClick={() => { setImage(null); setResult(null); }}
-                    className="mt-6 text-sm text-emerald-300 hover:text-white hover:underline transition-colors"
-                    >
-                    Clear & Scan New
-                    </button>
+                    <div className="relative rounded-xl overflow-hidden shadow-2xl border border-white/10 bg-black/50 max-h-[350px]">
+                        <img 
+                            src={`data:image/jpeg;base64,${image}`} 
+                            alt="Scanned Medicine" 
+                            className="max-h-[350px] object-contain"
+                        />
+                        
+                        {/* Scanning Overlay Effect */}
+                        {!result && !isAnalyzing && (
+                            <div className="absolute inset-0 pointer-events-none">
+                                <div 
+                                    className="w-full h-1 bg-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.8)] absolute left-0"
+                                    style={{ top: `${scanLinePos}%` }}
+                                />
+                                <div className="absolute inset-0 bg-emerald-500/5" />
+                            </div>
+                        )}
+                        
+                        {isAnalyzing && (
+                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center flex-col gap-4 backdrop-blur-sm">
+                                <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+                                <span className="text-emerald-400 font-bold animate-pulse">Processing...</span>
+                             </div>
+                        )}
+
+                        <button 
+                            onClick={() => { setImage(null); setResult(null); }}
+                            className="absolute top-2 right-2 p-2 bg-black/60 rounded-full text-white hover:bg-red-500/80 transition-colors"
+                        >
+                            <X size={16} />
+                        </button>
+                    </div>
+
+                    {!result && !isAnalyzing && (
+                        <div className="mt-8">
+                             <button
+                                onClick={handleAnalyze}
+                                className="shiny-btn flex items-center space-x-3 bg-emerald-500 hover:bg-emerald-400 text-black px-10 py-4 rounded-full font-bold shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:scale-105 transition-transform"
+                            >
+                                <Zap className="w-6 h-6 fill-black" />
+                                <span>Identify Medicine</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
                 )}
             </div>
-
-            {/* Analysis Controls */}
-            {image && !result && (
-                <div className="flex justify-center animate-in fade-in slide-in-from-bottom-4">
-                <button
-                    onClick={handleAnalyze}
-                    disabled={isAnalyzing}
-                    className="shiny-btn flex items-center space-x-3 bg-white text-black px-10 py-4 rounded-full font-bold shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform disabled:opacity-50"
-                >
-                    {isAnalyzing ? (
-                    <>
-                        <Activity className="w-6 h-6 animate-spin text-emerald-600" />
-                        <span>Enhancing & Analyzing...</span>
-                    </>
-                    ) : (
-                    <>
-                        <Zap className="w-6 h-6 fill-black" />
-                        <span>Analyze Medicine</span>
-                    </>
-                    )}
-                </button>
-                </div>
-            )}
 
             {/* Results View */}
             {result && (
@@ -150,6 +193,13 @@ const Scanner: React.FC = () => {
                             <strong>Medical Disclaimer:</strong> This analysis is generated by AI for informational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a certified medical professional or pharmacist before taking any medication.
                         </p>
                     </div>
+                    
+                    <button 
+                        onClick={() => { setImage(null); setResult(null); }}
+                        className="w-full py-4 rounded-xl border border-white/10 text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+                    >
+                        Scan Another Medicine
+                    </button>
                 </div>
             )}
         </div>

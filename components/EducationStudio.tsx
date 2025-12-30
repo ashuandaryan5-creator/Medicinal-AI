@@ -8,25 +8,11 @@ const EducationStudio: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  const checkVeoAuth = async () => {
-    // Both Veo models and gemini-3-pro-image-preview require users to select their own API key.
-    if (mode === 'video' || mode === 'image') {
-      const aistudio = (window as any).aistudio;
-      if (aistudio) {
-        const hasKey = await aistudio.hasSelectedApiKey();
-        if (!hasKey) {
-          await aistudio.openSelectKey();
-        }
-      }
-    }
-  };
-
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setLoading(true);
     setResult(null);
     try {
-      await checkVeoAuth();
       if (mode === 'video') {
         const uri = await generateEducationalVideo(prompt);
         setResult(uri);
@@ -36,7 +22,7 @@ const EducationStudio: React.FC = () => {
       }
     } catch (e) {
       console.error(e);
-      alert("Generation failed. See console for details.");
+      alert("Generation failed. Please try again or check your API key quotas.");
     } finally {
       setLoading(false);
     }
@@ -68,7 +54,7 @@ const EducationStudio: React.FC = () => {
         />
         
         <div className="text-xs text-gray-500 w-full text-center">
-          {mode === 'video' ? 'Powered by Veo 3.1 (Requires Paid Key)' : 'Powered by Gemini 3 Image Preview (Requires Paid Key)'}
+          {mode === 'video' ? 'Powered by Veo 3.1' : 'Powered by Gemini 3 Image Preview'}
         </div>
 
         <button

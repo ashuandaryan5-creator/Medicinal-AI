@@ -9,7 +9,8 @@ export enum AppView {
   INTERACTIONS = 'INTERACTIONS',
   VITALS = 'VITALS',
   FIRST_AID = 'FIRST_AID',
-  WELLNESS = 'WELLNESS'
+  WELLNESS = 'WELLNESS',
+  EDUCATION = 'EDUCATION'
 }
 
 export interface Message {

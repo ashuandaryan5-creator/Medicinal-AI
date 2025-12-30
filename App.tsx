@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Stethoscope, Map, Mic, Home, ChevronRight, Clock, Activity, GitCompare, HeartPulse, LifeBuoy, Sun } from 'lucide-react';
+import { Camera, Stethoscope, Map, Mic, Home, ChevronRight, Clock, Activity, GitCompare, HeartPulse, LifeBuoy, Sun, Film } from 'lucide-react';
 import Scanner from './components/Scanner';
 import ChatInterface from './components/ChatInterface';
 import HospitalFinder from './components/HospitalFinder';
@@ -10,6 +10,7 @@ import InteractionChecker from './components/InteractionChecker';
 import VitalsLogger from './components/VitalsLogger';
 import FirstAidGuide from './components/FirstAidGuide';
 import WellnessCheck from './components/WellnessCheck';
+import EducationStudio from './components/EducationStudio';
 import { AppView } from './types';
 
 const App: React.FC = () => {
@@ -64,6 +65,14 @@ const App: React.FC = () => {
         icon: Sun,
         color: 'text-purple-400',
         bg: 'group-hover:bg-purple-500/10'
+      },
+      {
+        id: AppView.EDUCATION,
+        title: 'Edu Studio',
+        desc: 'Visual learning & videos.',
+        icon: Film,
+        color: 'text-indigo-400',
+        bg: 'group-hover:bg-indigo-500/10'
       },
       {
         id: AppView.LIVE,
@@ -186,6 +195,7 @@ const App: React.FC = () => {
                  {view === AppView.VITALS && <VitalsLogger />}
                  {view === AppView.FIRST_AID && <FirstAidGuide />}
                  {view === AppView.WELLNESS && <WellnessCheck />}
+                 {view === AppView.EDUCATION && <EducationStudio />}
                </div>
              )}
           </div>

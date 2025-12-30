@@ -233,3 +233,40 @@ export const generateMedicalDiagram = async (prompt: string): Promise<string> =>
   }
   throw new Error("Image generation failed.");
 };
+
+// --- 12. Object Detection (Live Scan) ---
+export const detectMedicineObjects = async (base64Image: string) => {
+  const ai = getAiClient();
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: {
+        parts: [
+          { inlineData: { mimeType: "image/jpeg", data: base64Image } },
+          { text: "Detect medicines, pill bottles, or medical items. Return JSON array: [{name, ymin, xmin, ymax, xmax}] normalized 0-1." }
+        ]
+      },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              ymin: { type: Type.NUMBER },
+              xmin: { type: Type.NUMBER },
+              ymax: { type: Type.NUMBER },
+              xmax: { type: Type.NUMBER }
+            },
+            required: ["name", "ymin", "xmin", "ymax", "xmax"]
+          }
+        }
+      }
+    });
+    return JSON.parse(response.text || "[]");
+  } catch (error) {
+    console.error("Detection failed:", error);
+    return [];
+  }
+};
